@@ -2,6 +2,13 @@
 
 from linkedlist import LinkedList
 
+class KeyValuePair:
+        def __init__(self, key, value):
+            self.key = key
+            self.value = value
+
+        def __eq__(self, other):
+            return other == self.key
 
 class HashTable(object):
 
@@ -18,36 +25,99 @@ class HashTable(object):
         return hash(key) % len(self.buckets)
 
     def length(self):
-        """Return the length of this hash table by traversing its buckets"""
-        # TODO: Count number of key-value entries in each of the buckets
-        pass
+        """Return the length of this hash table by traversing its buckets
 
-    def contains(self):
+        Best case running time: Ω(n^2) and
+        Worst case running time: O(n^2) because we have to loop through all
+        the lists and all the lists inside of each list."""
+        total = 0
+
+        for bucket in self.buckets:
+            total += bucket.length()
+
+        return total
+
+    def contains(self, key):
         """Return True if this hash table contains the given key, or False"""
-        # TODO: Check if the given key exists in a bucket
-        pass
+        try:
+            self.get(key)
+        except KeyError:
+            return False
+
+        return True
+
 
     def get(self, key):
-        """Return the value associated with the given key, or raise KeyError"""
-        # TODO: Check if the given key exists and return its associated value
-        pass
+        """Return the value associated with the given key, or raise KeyError
+
+        Best case running time: Ω(1) if the bucket has only one or less elements
+        Worst case running time: O(n) because we are keeping a reference to
+        the head, we don't have to iterate throught any of the elements."""
+
+        index = self._bucket_index(key)
+        item = self.buckets[index].find(lambda item: item == key)
+
+        if(item):
+            return item.value
+
+        raise KeyError
+
 
     def set(self, key, value):
-        """Insert or update the given key with its associated value"""
-        # TODO: Insert or update the given key-value entry into a bucket
-        pass
+        """Insert or update the given key with its associated value
+
+        Best case running time: Ω(1) if the bucket is empty
+        Worst case running time: O(n) if the bucket has many elements in it."""
+        index = self._bucket_index(key)
+
+        bucket_item = self.buckets[index].find(lambda item: item == key)
+
+        if(bucket_item):
+            bucket_item.value = value
+        else:
+            self.buckets[index].append(KeyValuePair(key, value))
 
     def delete(self, key):
-        """Delete the given key from this hash table, or raise KeyError"""
-        # TODO: Find the given key and delete its entry if found
-        pass
+        """Delete the given key from this hash table, or raise KeyError
+
+        Best case running time: Ω(1) if the bucket is empty
+        Worst case running time: O(n) if the bucket has many elements in it."""
+
+        if not self.get(key):
+            raise KeyError
+
+        index = self._bucket_index(key)
+        self.buckets[index].delete(key)
 
     def keys(self):
-        """Return a list of all keys in this hash table"""
-        # TODO: Collect all keys in each of the buckets
-        pass
+        """Return a list of all keys in this hash table
+
+        Best case running time: Ω(n) and
+        Worst case running time: O(n) because it has to got through all the elements."""
+        keys = []
+
+        for bucket in self.buckets:
+            bucket_keys = map(lambda x: x.key, bucket.as_list())
+            keys.extend(bucket_keys)
+
+        return keys
 
     def values(self):
-        """Return a list of all values in this hash table"""
-        # TODO: Collect all values in each of the buckets
-        pass
+        """Return a list of all values in this hash table
+
+        Best case running time: Ω(n) and
+        Worst case running time: O(n) bceause it has to got through all the elements."""
+        values = []
+
+        for bucket in self.buckets:
+            bucket_values = map(lambda x: x.value, bucket.as_list())
+            values.extend(bucket_values)
+
+        return values
+
+    def clear(self):
+        """Remove all items from the dictionary.
+
+        Best case running time: Ω(n) and
+        Worst case running time: O(n) because it has to got through all the buckets."""
+        self.buckets = [LinkedList() for i in range(len(self.buckets))]
